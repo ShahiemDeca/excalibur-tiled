@@ -20,6 +20,16 @@ import { LoaderCache } from "./loader-cache";
 import { TemplateResource, TemplateResourceOptions } from "./template-resource";
 import { ImageLayer } from "./image-layer";
 
+interface MapContainer {
+   maps: { fileName: string }[];
+ }
+ 
+ interface MapData {
+   mapData: any; // Ideally, replace `any` with the actual type of the map data.
+   extension: "TMX" | "TMJ";
+ }
+
+ 
 export interface TiledAddToSceneOptions {
    pos: Vector;
 }
@@ -589,8 +599,8 @@ export class TiledResource implements Loadable<any> {
       return this.layers.filter(byPropertyCaseInsensitive(propertyName, value));
    }
 
-   private _parseMap(data: any) {
-      if (this.mapFormat === 'TMX') {
+   private _parseMap(data: any, extension: string) {
+      if (extension === 'TMX') {
          return this.parser.parse(data, this.strict);
       } else {
          return data as TiledMap;
@@ -604,19 +614,46 @@ export class TiledResource implements Loadable<any> {
       let map: TiledMap;
       if (this.strict) {
          try {
-            map = this._parseMap(data);
+            map = this._parseMap(data, this.mapFormat);
          } catch (e) {
             console.error(`Could not parse tiled map from location ${this.path}, attempted to interpret as ${this.mapFormat}.\nExcalibur only supports the latest version of Tiled formats as of the plugin's release.`);
             console.error(`Is your map file corrupted or being interpreted as the wrong type?`)
             throw e;
          }
       } else {
-         map = this._parseMap(data);
+         map = this._parseMap(data, this.mapFormat);
       }
 
       if (compare(TiledResource.supportedTiledVersion, map.tiledversion ?? '0.0.0', ">")) {
          console.warn(`The excalibur tiled plugin officially supports ${TiledResource.supportedTiledVersion}+, the current map has tiled version ${map.tiledversion}`)
       }
+      console.log(map, 'dd')
+
+
+      if(map.type === 'world') {
+
+         const mapContainer: any = map;
+            const mapDataList: MapData[] = await Promise.all(
+            mapContainer.maps.map(async (mapItem: { fileName: any; }) => {
+               const mapFilePath = mapItem.fileName;
+               const fileExtension = mapFilePath.endsWith(".tmx") ? "TMX" : "TMJ";
+               
+               const mapData = await this.fileLoader(
+                  `./${mapFilePath}`,
+                  fileExtension === "TMX" ? "xml" : "json"
+               );
+               
+               return { mapData, extension: fileExtension };
+            })
+            );
+
+            if (mapDataList.length > 0) {
+               const { mapData, extension } = mapDataList[0];
+               map = this._parseMap(mapData, extension);
+             } else {
+               throw new Error("mapDataList is empty. Unable to parse map.");
+             }
+         }
 
       this.map = map;
 
@@ -740,10 +777,6 @@ export class TiledResource implements Loadable<any> {
             pathMap: this.pathMap
          } satisfies TemplateResourceOptions)
       }
-   }
-
-   loadJson() {
-      
    }
 
    addToScene(scene: Scene, options?: TiledAddToSceneOptions) {

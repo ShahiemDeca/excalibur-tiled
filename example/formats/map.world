@@ -1,0 +1,20 @@
+{
+    "maps": [
+        {
+            "fileName": "base.tmx",
+            "height": 4336,
+            "width": 2864,
+            "x": 0,
+            "y": 0
+        },
+        {
+            "fileName": "dungeon.tmx",
+            "height": 1184,
+            "width": 2160,
+            "x": 2864,
+            "y": 0
+        }
+    ],
+    "onlyShowAdjacentMaps": false,
+    "type": "world"
+}

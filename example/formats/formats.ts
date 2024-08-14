@@ -70,7 +70,7 @@ const start = (mapFile: string) => {
    
    player.onPostUpdate = () => {
       player.vel.setTo(0, 0);
-      const speed = isIsometric ? 64*2 : 64;
+      const speed = isIsometric ? 64*2 : 164;
       if (game.input.keyboard.isHeld(ex.Input.Keys.Right)) {
          player.vel.x = speed;
          if (isIsometric) {
@@ -171,7 +171,7 @@ const start = (mapFile: string) => {
       setTimeout(() => {
          game.currentScene.camera.x = player.pos.x;
          game.currentScene.camera.y = player.pos.y;
-         game.currentScene.camera.zoom = 4;
+         game.currentScene.camera.zoom = 1;
          if (isIsometric) {
             game.currentScene.camera.zoom = 1;
             player.pos.x = 100;
