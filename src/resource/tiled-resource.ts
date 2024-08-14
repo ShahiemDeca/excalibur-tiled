@@ -742,6 +742,10 @@ export class TiledResource implements Loadable<any> {
       }
    }
 
+   loadJson() {
+      
+   }
+
    addToScene(scene: Scene, options?: TiledAddToSceneOptions) {
       if (!this.isLoaded()) {
          this.logger.warn(`TiledResource ${this.path} is not loaded! Nothing will be wired into excalibur!`);
